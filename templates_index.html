@@ -1,0 +1,130 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Login</title>
+</head>
+<body>
+    {% if logged_in %}
+        <h1>Welcome, {{ username }}</h1>
+        <img src="{{ avatar }}" alt="Avatar" width="50" height="50">
+        <h2>Your Repositories:</h2>
+        <ul>
+            {% for repo in repos %}
+                <li>
+                    <strong>{{ repo['name'] }}</strong> ({{ 'Private' if repo['private'] else 'Public' }})
+                    <ul>
+                        {% for branch in repo['branches'] %}
+                            <li>
+                                <strong>{{ branch['name'] }}</strong>
+                                <ul>
+                                    {% for file in branch['files'] %}
+                                        <li>{{ file['name'] }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <a href="{{ url_for('github.login') }}">Login with GitHub</a>
+    {% endif %}
+</body>
+</html> -->
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GitHub Webhook Manager</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        section { margin-bottom: 20px; }
+        input, button { padding: 10px; width: 100%; margin-top: 5px; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        ul { list-style: none; padding: 0; }
+    </style>
+</head>
+<body>
+    <h1>GitHub Webhook Manager</h1>
+
+    <section>
+        <h2>Fetch Repositories</h2>
+        <button id="fetch-repos-btn">Fetch Repositories</button>
+        <ul id="repo-list"></ul>
+    </section>
+
+    <section>
+        <h2>Create Webhook</h2>
+        <form id="create-webhook-form">
+            <input type="text" id="repo-name" placeholder="Repository Name" required>
+            <input type="url" id="webhook-url" placeholder="Webhook URL" required>
+            <input type="text" id="events" placeholder="Events (e.g., push, pull_request)" required>
+            <button type="submit">Create Webhook</button>
+        </form>
+    </section>
+
+    <section>
+        <h2>List Webhooks</h2>
+        <input type="text" id="repo-name-to-list" placeholder="Repository Name">
+        <button id="list-webhooks-btn">List Webhooks</button>
+        <ul id="webhook-list"></ul>
+    </section>
+
+    <script>
+        document.getElementById('fetch-repos-btn').addEventListener('click', () => {
+            fetch('/fetch-repos')
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById('repo-list');
+                    list.innerHTML = '';
+                    (data.repos || []).forEach(repo => {
+                        const li = document.createElement('li');
+                        li.textContent = repo.name;
+                        list.appendChild(li);
+                    });
+                });
+        });
+
+        document.getElementById('create-webhook-form').addEventListener('submit', e => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('repo_name', document.getElementById('repo-name').value);
+            formData.append('webhook_url', document.getElementById('webhook-url').value);
+            formData.append('events', document.getElementById('events').value);
+
+            fetch('/create-webhook', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message || data.error || 'Webhook action complete.');
+                });
+        });
+
+        document.getElementById('list-webhooks-btn').addEventListener('click', () => {
+            const repo = document.getElementById('repo-name-to-list').value;
+            fetch(`/list-webhooks/${repo}`)
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById('webhook-list');
+                    list.innerHTML = '';
+                    (data.webhooks || []).forEach(hook => {
+                        const li = document.createElement('li');
+                        li.textContent = `URL: ${hook.config.url}, Events: ${hook.events.join(', ')}`;
+                        list.appendChild(li);
+                    });
+                });
+        });
+    </script>
+</body>
+</html>
