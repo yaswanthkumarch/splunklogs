@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    
+       
+    <title>DevSync</title>
+    <link rel="icon" href="{{ url_for('static', filename='mwt_logo.png') }}" type="image/x-icon">
+    <!-- <title>{{ repo_name }} Contents</title> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Base styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f6f8fa;
+            color: #24292e;
+        }
+        
+        a { 
+            color: #0969da;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        a:hover { 
+            text-decoration: underline;
+            color: #0a58ca;
+        }
+        
+        /* Card and list styles */
+        .card {
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        
+        .list-group-item {
+            padding: 12px 16px;
+            border-color: #d0d7de;
+            transition: background-color 0.1s ease;
+        }
+        .list-group-item:hover {
+            background-color: #f6f8fa;
+        }
+        
+        /* Action modal styles */
+        .action-modal .modal-content {
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .action-modal .modal-header {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        
+        .action-modal .modal-body {
+            padding-top: 0;
+        }
+        
+        .action-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Success animation */
+        @keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .checkmark {
+            color: #2da44e;
+            animation: checkmark 0.5s ease;
+        }
+        
+        /* Loading spinner */
+        #loadingSpinner {
+            display: flex;
+            justify-content: center;
+            padding: 24px 0;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+        
+        /* Sidebar styles (kept from your original) */
+        .main-nav {
+            background-color: #343a40;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: #f8f9fa;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 1050;
+            overflow-y: auto;
+            padding-top: 20px;
+        }
+        
+        .sidebar.open {
+            left: 0;
+        }
+        
+        .right-sidebar {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: #f8f9fa;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 1050;
+            overflow-y: auto;
+            padding-top: 20px;
+        }
+        
+        .right-sidebar.open {
+            right: 0;
+        }
+        
+        .sidebar-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1040;
+            display: none;
+        }
+    </style>
+
+
+
+
+
+<style>
+    .main-nav {
+        background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+        height: 70px;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+    
+    .main-nav .nav-brand {
+        color: white;
+        font-size: 1.8rem;
+        letter-spacing: 1px;
+    }
+    
+    .main-nav .nav-toggle {
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        transition: background 0.3s ease;
+    }
+    
+    .main-nav .nav-toggle:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+    
+    .main-nav .fa-bars,
+    .main-nav .fa-cog {
+        font-size: 1.2rem;
+    }
+    
+    .nav-toggle span {
+        margin-left: 5px;
+        font-size: 1rem;
+    }
+    
+    .shadow-sm {
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .hidden {
+  display: none !important;
+}
+    </style>
+    
+
+
+</head>
+<body class="bg-light">
+    <!-- Navigation Bar -->
+    <nav class="main-nav d-flex align-items-center justify-content-between px-4 py-2 shadow-sm">
+        <div class="d-flex align-items-center">
+            <button class="nav-toggle btn btn-light me-3" id="leftToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    
+        <a href="#" class="nav-brand text-decoration-none fw-bold fs-4 text-dark">
+            {{ repo_name }}
+        </a>
+    
+        <div class="d-flex align-items-center">
+            <button class="nav-toggle btn btn-light" id="rightToggle">
+                 <i class="fas fa-cog me-2"></i> <!--<span>Actions</span> -->
+            </button>
+        </div>
+    </nav>
+    
+    <!-- Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- Left Sidebar (Navigation) -->
+    <div class="sidebar" id="leftSidebar">
+        <div class="sidebar-header d-flex justify-content-between align-items-center p-3">
+            <h5 class="text-uppercase mb-0">Navigation</h5>
+            <button class="btn-close" id="closeLeftSidebar"></button>
+        </div>
+        <div class="sidebar-content px-3">
+            <!-- Home Link -->
+            <a href="{{ url_for('home') }}" class="btn btn-outline-primary w-100 mb-2">
+                <i class="fas fa-home me-2"></i>Home
+            </a>
+            {% if path %}
+            <a href="{{ url_for('show_contents', owner=owner, repo_name=repo_name, path=parent_path, branch=selected_branch) }}" class="btn btn-outline-primary w-100 mb-2" >
+                <i class="fa-solid fa-backward"></i>back
+            </a>
+            {% endif %}
+            
+            <!-- Branch Dropdown -->
+            <div class="dropdown mb-2">
+                <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="branchDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-code-branch me-2"></i><span id="selectedBranchText">{{ selected_branch }}</span>
+                </button>
+                <ul class="dropdown-menu w-100" aria-labelledby="branchDropdown">
+                    {% for branch in branches %}
+                        <li><a class="dropdown-item" href="#" data-branch="{{ branch.name }}">{{ branch.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+    
+            <!-- Profile Link with some information -->
+            <a href="#" class="btn btn-outline-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#profileModal">
+                <i class="fa-solid fa-user me-2"></i>Profile
+            </a>
+    
+            <!-- Webhooks Link with some information
+            <a href="#" class="btn btn-outline-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#webhooksModal">
+                <i class="fa-solid fa-link me-2"></i>Webhooks
+            </a>
+     -->
+<!-- Trigger Button for Webhook Modal -->
+<a href="#" class="btn btn-outline-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#webhooksModal">
+    <i class="fa-solid fa-link me-2"></i>Webhooks
+</a>
+
+
+            <!-- Settings Link with some information -->
+            <a href="#" class="btn btn-outline-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                <i class="fa-solid fa-gear me-2"></i>Settings
+            </a>
+        </div>
+    </div>
+  
+
+<!-- Profile Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileModalLabel">Profile Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center;">
+                    <img src="{{ avatar_url }}" alt="Avatar" width="150" height="150" style="border-radius: 50%;"><br><br>
+                    <p><strong>Name:</strong> {{ name }}</p>
+                    <p><strong>Username:</strong> {{ username }}</p>
+                    <p><strong>Email:</strong> {{ email if email else 'Not Public' }}</p>
+                    <p><strong>Bio:</strong> {{ bio if bio else 'No bio provided' }}</p>
+                    <p><strong>Public Repositories:</strong> {{ public_repos }}</p>
+                    <p><strong>Followers:</strong> {{ followers }}</p>
+                    <p><strong>Following:</strong> {{ following }}</p>
+                    <p><strong>GitHub Profile:</strong> <a href="{{ html_url }}" target="_blank">{{ html_url }}</a></p>
+                    <p><strong>Account Created:</strong> {{ created_at }}</p>
+                </div>
+                
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <!-- <button type="button" class="btn btn-primary">Edit Profile</button> -->
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Webhooks Modal -->
+<div class="modal fade" id="webhooksModal" tabindex="-1" aria-labelledby="webhooksModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="webhooksModalLabel">Manage Webhooks</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Set up webhooks to automate notifications or actions.</p>
+                <ul>
+                    <li><strong>Webhook 1:</strong> Repository Push Notification</li>
+                    <li><strong>Webhook 2:</strong> Issue Created Notification</li>
+                </ul>
+                <button class="btn btn-outline-primary w-100">Add Webhook</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Settings Modal -->
+<div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="settingsModalLabel">Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Theme:</strong> Dark Mode</p>
+                <p><strong>Language:</strong> English</p>
+                <p><strong>Notifications:</strong> Enabled</p>
+                <button class="btn btn-outline-warning w-100">Change Settings</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+    
+    <!-- Right Sidebar (Actions) -->
+    <div class="right-sidebar" id="rightSidebar">
+        <div class="sidebar-header">
+            <h5>Repository Actions</h5>
+            
+        </div>
+        <div class="sidebar-content">
+    <button class="btn btn-outline-danger w-100 mb-2" id="closeRightSidebar">
+    <i class="fas fa-times me-2"></i>Close Sidebar
+</button>
+            <button id="downloadBtn" class="btn btn-outline-success w-100 mb-2">
+                <i class="fas fa-download me-2"></i>Download Repo
+            </button>
+
+            <button id="cloneBtn" class="btn btn-outline-secondary w-100 mb-2">
+                <i class="fas fa-terminal me-2"></i>Clone Repository
+            </button>
+            <button id="helpBtn" class="btn btn-outline-info w-100 mb-2">
+                <i class="fas fa-question-circle me-2"></i>Help
+            </button>
+            <button id="deleteBtn" class="btn btn-outline-danger w-100 mb-2">
+                <i class="fas fa-trash-alt me-2"></i>Delete Repository
+            </button>
+          
+           
+            <form action="/logout" method="get">
+                <button type="submit" class="btn btn-outline-danger w-100 mb-2">
+                  <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
+                </button>
+              </form>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container main-content" id="mainContent">
+        <!-- Repo Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 mt-4">
+            <h3>
+                {{ repo_name }}
+                <span class="badge {% if repo_private %}bg-danger{% else %}bg-success{% endif %}">
+                    {{ 'Private' if repo_private else 'Public' }}
+                </span>
+            </h3>   
+            <div>
+                <span class="badge bg-primary">
+                    <i class="fas fa-code-branch me-1"></i>{{ selected_branch }}
+                </span>
+
+            </div>
+
+
+        </div>
+    </div>
+            
+        <div class="card">
+            <ul class="list-group list-group-flush">
+                {% for item in contents %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <!-- File Name on Left -->
+                    <div class="d-flex align-items-center">
+                        {% if item.type == 'dir' %}
+                            <i class="fas fa-folder text-warning me-2"></i>
+                            <a href="{{ url_for('show_contents', owner=owner, repo_name=repo_name, path=item.path) }}" class="text-decoration-none">{{ item.name }}</a>
+                        {% else %}
+                            <i class="fas fa-file text-primary me-2"></i>
+                            <a href="#" class="file-link text-decoration-none" data-path="{{ item.path }}">{{ item.name }}</a>
+                        {% endif %}
+                    </div>
+        
+                    <!-- Center: Commit Info -->
+                    <div class="d-flex justify-content-center align-items-center flex-grow-1 text-muted small">
+                        {% if item.latest_commit %}
+                        <div>
+                            {{ item.latest_commit }}
+                        </div>
+                        {% endif %}
+                    </div>
+        
+                    <!-- Time (Last Updated) on Right -->
+                    <div class="text-muted small">
+                        {{ item.last_updated }}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+
+    <!-- Action Modals -->
+    <!-- Download Modal -->
+    <div class="modal fade action-modal" id="downloadModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Download Repository</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="action-icon text-success">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <p>Download the entire repository as a ZIP file.</p>
+                    
+                    <div class="d-flex justify-content-center gap-2 mt-4">
+                        <a href="{{ url_for('download_repo', owner=owner, repo_name=repo_name, branch='main') }}" class="btn btn-success">
+                            Download Entire Repo (ZIP)
+                          </a>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clone Modal -->
+    <div class="modal fade action-modal" id="cloneModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Clone Repository</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="action-icon text-primary">
+                        <i class="fas fa-terminal"></i>
+                    </div>
+                    <div class="input-group mb-3">
+                        <h4>HTTPS</h4>
+                        <br>    
+                        <input type="text" class="form-control" id="cloneCommandText" 
+                               value="git clone https://github.com/{{ owner }}/{{ repo_name }}.git" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="copyCloneCmd">
+                            <i class="far fa-copy"></i>
+                        </button>
+                        
+                    </div>
+                    <div class="input-group mb-3">
+                        <h4>SSH</h4>
+                        <br>
+                    <input type="text" class="form-control" id="cloneCommandTextlinux" 
+                        value="git clone git@github.com:{{ owner }}/{{ repo_name }}.git" readonly>
+                 <button class="btn btn-outline-secondary" type="button" id="copyCloneCmdlinux">
+                     <i class="far fa-copy"></i>
+                 
+                 </button>
+                </div>
+                    <div id="cloneSuccess" class="text-success mb-3" style="display:none;">
+                        <i class="fas fa-check-circle checkmark me-2"></i>
+                        Copied to clipboard!
+                    </div>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal fade action-modal" id="helpModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Help</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="action-icon text-info">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <p>Welcome to the repository browser. Here's how to use it:</p>
+                    <ul class="text-start">
+                        <li><strong>Navigation:</strong> Click on folders to browse through the repository structure</li>
+                        <li><strong>Files:</strong> Click on files to view their contents</li>
+                        <li><strong>Branches:</strong> Use the dropdown to switch between different branches</li>
+                        <li><strong>Download:</strong> Get the entire repository as a ZIP file</li>
+                        <li><strong>Clone:</strong> Copy the git command to clone this repository locally</li>
+                    </ul>
+                    <button type="button" class="btn btn-primary mt-3" data-bs-dismiss="modal">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Delete Repository</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="text-danger mb-3">
+                    <i class="fas fa-exclamation-triangle fa-3x"></i>
+                </div>
+                <div class="alert alert-danger">
+                    <strong>Warning:</strong> This cannot be undone!
+                </div>
+                <p>To confirm, type  <strong>{{ owner }}/{{ repo_name }}</strong> in the box below</p>
+                
+                <input type="text" class="form-control mb-3" id="deleteConfirmation" 
+                       placeholder="Enter repository name" autocomplete="off">
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete" disabled>
+                    <i class="fas fa-trash-alt me-2"></i> Confirm Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delete button click handler
+        document.getElementById('deleteBtn').addEventListener('click', function() {
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        });
+    
+        // Confirmation input validation
+        const confirmationInput = document.getElementById('deleteConfirmation');
+        const confirmBtn = document.getElementById('confirmDelete');
+        const repoName1 = '{{ owner }}/{{ repo_name }}'; // Django/Flask templating value
+        const repoName = '{{ repo_name }}';
+        confirmationInput.addEventListener('input', function() {
+            confirmBtn.disabled = this.value.trim() !== repoName1;
+        });
+    
+        // Clear input when modal is hidden
+        document.getElementById('deleteModal').addEventListener('hidden.bs.modal', function() {
+            confirmationInput.value = '';
+            confirmBtn.disabled = true;
+        });
+    
+        // Actual delete handler
+        confirmBtn.addEventListener('click', async function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            
+            // Show loading state
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Deleting...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('/delete-repo', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ repo_name: repoName })
+                });
+    
+                const data = await response.json();
+    
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // Session expired - redirect to login
+                        window.location.href = data.login_url || '/login';
+                        return;
+                    }
+                    throw new Error(data.message || 'Delete failed');
+                    
+                }
+    
+                if (data.success) {
+                    // Success - close modal and reload page
+                    const modalInstance = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+                    modalInstance.hide();
+    
+                  
+                } else {
+                    throw new Error(data.message || 'Delete failed');
+                }
+    
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert(error.message || 'Failed to delete repository');
+    
+                // Reset button
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+    });
+    </script>
+    
+
+
+    <!-- File Viewer Modal -->
+    <div class="modal fade" id="fileViewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">File Viewer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="loadingSpinner" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <pre id="textView" style="display:none;"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- readfile -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Add this CSS -->
+<style>
+    .split-container {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: white;
+        z-index: 1000;
+        display: none;
+        flex-direction: column;
+        box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+    }
+
+    .editor-header {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .editor-content {
+        display: flex;
+        flex: 1;
+        height: calc(100% - 60px);
+    }
+
+    .view-pane, .edit-pane {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        position: relative;
+    }
+
+    .view-pane {
+        border-right: 2px solid #dee2e6;
+        background: #96efa7;
+    }
+
+    #fileContentView {
+        white-space: pre-wrap;
+        font-family: monospace;
+        background: rgb(147, 235, 170);
+        padding: 1rem;
+        border-radius: 4px;
+    }
+
+    #fileEditor {
+        width: 100%;
+        height: calc(100% - 100px);
+        font-family: monospace;
+        padding: 0rem;
+        border: 1px solid #156ec7;
+        border-radius: 4px;
+        resize: none;
+        margin-bottom: -12px;
+
+    }
+
+     .commit-section {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 4px;
+    } 
+/* 
+    .commit-section{
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 50%; 
+}*/
+
+</style>
+
+<!-- Split Pane Container -->
+<div class="split-container">
+    <div class="editor-header">
+        <h5 class="mb-0">Editing: <span id="currentFileName"></span></h5>
+        <button class="btn btn-sm btn-danger" onclick="closeEditor()">
+            <i class="fas fa-times"></i> Close
+        </button>
+    </div>
+    
+    <div class="editor-content">
+        <!-- View Pane -->
+        <div class="view-pane">
+            <div class="spinner-border text-primary" id="viewSpinner" style="display: none;"></div>
+            <pre id="fileContentView"></pre>
+        </div>
+
+        <!-- Edit Pane -->
+        <div class="edit-pane">
+            <div class="spinner-border text-primary" id="editSpinner" style="display: none;"></div>
+            <textarea id="fileEditor"></textarea>
+            
+            <!-- Commit Section -->
+            <div class="commit-section">
+                <div class="mb-3">
+                    <label class="form-label">Commit Message</label>
+                    <input type="text" class="form-control" id="commitMessage" 
+                           value="Update file" required><span id="currentFileName"></span>
+                </div>
+                <div id="commitError" class="text-danger small mb-2"></div>
+                <button class="btn btn-primary w-100" id="commitButton">
+                    <i class="fas fa-save me-2"></i>Commit Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentFile = {
+    path: '',
+    originalContent: '',
+    owner: '{{ owner }}',
+    repo: '{{ repo_name }}'
+};
+
+// Open editor pane
+async function openEditor(filePath) {
+    document.querySelector('.split-container').style.display = 'flex';
+    document.getElementById('currentFileName').textContent = filePath;
+    currentFile.path = filePath;
+
+    // Show loading states
+    document.getElementById('viewSpinner').style.display = 'block';
+    document.getElementById('editSpinner').style.display = 'block';
+    document.getElementById('fileContentView').style.display = 'none';
+    document.getElementById('fileEditor').style.display = 'none';
+
+    try {
+        const response = await fetch(
+            `/view_file/${currentFile.owner}/${currentFile.repo}/` + 
+            `${encodeURIComponent(filePath)}?branch={{ selected_branch }}`
+        );
+
+        if (response.ok) {
+            const content = await response.text();
+            currentFile.originalContent = content;
+            
+            // Update view and editor
+            document.getElementById('fileContentView').textContent = content;
+            document.getElementById('fileEditor').value = content;
+            
+            // Show content
+            document.getElementById('viewSpinner').style.display = 'none';
+            document.getElementById('editSpinner').style.display = 'none';
+            document.getElementById('fileContentView').style.display = 'block';
+            document.getElementById('fileEditor').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading file:', error);
+        alert('Failed to load file content');
+        closeEditor();
+    }
+}
+
+// Close editor
+function closeEditor() {
+    document.querySelector('.split-container').style.display = 'none';
+    currentFile = {
+        path: '',
+        originalContent: '',
+        owner: '{{ owner }}',
+        repo: '{{ repo_name }}'
+    };
+}
+
+// Handle file link clicks
+document.querySelectorAll('.file-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        openEditor(this.dataset.path);
+    });
+});
+
+// Commit functionality
+document.getElementById('commitButton').addEventListener('click', async function() {
+    const commitMessage = document.getElementById('commitMessage').value.trim();
+    const newContent = document.getElementById('fileEditor').value;
+    
+    if (!commitMessage) {
+        document.getElementById('commitError').textContent = 'Commit message is required';
+        return;
+    }
+    
+    if (newContent === currentFile.originalContent) {
+        document.getElementById('commitError').textContent = 'No changes to commit';
+        return;
+    }
+
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Committing...';
+
+    try {
+        const response = await fetch(`/update_file/${currentFile.owner}/${currentFile.repo}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                file_path: currentFile.path,
+                new_content: newContent,
+                commit_message: commitMessage
+            })
+        });
+
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            const error = await response.json();
+            document.getElementById('commitError').textContent = error.message || 'Commit failed';
+        }
+    } catch (error) {
+        console.error('Commit error:', error);
+        document.getElementById('commitError').textContent = 'Error committing changes';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-2"></i>Commit Changes';
+    }
+});
+
+// Real-time content comparison
+document.getElementById('fileEditor').addEventListener('input', function() {
+    const changesExist = this.value !== currentFile.originalContent;
+    document.getElementById('commitButton').disabled = !changesExist;
+});
+</script>
+    <script>
+        // Initialize Bootstrap tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Sidebar Toggle Functionality
+        const leftToggle = document.getElementById('leftToggle');
+        const rightToggle = document.getElementById('rightToggle');
+        const leftSidebar = document.getElementById('leftSidebar');
+        const rightSidebar = document.getElementById('rightSidebar');
+        const closeLeftSidebar = document.getElementById('closeLeftSidebar');
+        const closeRightSidebar = document.getElementById('closeRightSidebar');
+        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+        function toggleSidebar(sidebar, otherSidebar) {
+            const isOpen = sidebar.classList.contains('open');
+            
+            // Close both sidebars first
+            leftSidebar.classList.remove('open');
+            rightSidebar.classList.remove('open');
+            document.body.classList.remove('sidebar-open', 'right-sidebar-open');
+            sidebarBackdrop.style.display = 'none';
+            
+            // Open the selected sidebar if it wasn't open
+            if (!isOpen) {
+                sidebar.classList.add('open');
+                document.body.classList.add(sidebar === leftSidebar ? 'sidebar-open' : 'right-sidebar-open');
+                sidebarBackdrop.style.display = 'block';
+            }
+        }
+
+        function closeAllSidebars() {
+            leftSidebar.classList.remove('open');
+            rightSidebar.classList.remove('open');
+            document.body.classList.remove('sidebar-open', 'right-sidebar-open');
+            sidebarBackdrop.style.display = 'none';
+        }
+
+        leftToggle.addEventListener('click', () => toggleSidebar(leftSidebar, rightSidebar));
+        rightToggle.addEventListener('click', () => toggleSidebar(rightSidebar, leftSidebar));
+        closeLeftSidebar.addEventListener('click', closeAllSidebars);
+        closeRightSidebar.addEventListener('click', closeAllSidebars);
+        sidebarBackdrop.addEventListener('click', closeAllSidebars);
+
+        // Action Modals
+        const downloadBtn = document.getElementById('downloadBtn');
+        const cloneBtn = document.getElementById('cloneBtn');
+        const cloneBtnlinux = document.getElementById('cloneBtnlinux');
+        const helpBtn = document.getElementById('helpBtn');
+        const deleteBtn = document.getElementById('deleteBtn');
+        
+        downloadBtn.addEventListener('click', function() {
+            closeAllSidebars();
+            const downloadModal = new bootstrap.Modal(document.getElementById('downloadModal'));
+            downloadModal.show();
+        });
+        
+        cloneBtn.addEventListener('click', function() {
+            closeAllSidebars();
+            const cloneModal = new bootstrap.Modal(document.getElementById('cloneModal'));
+            cloneModal.show();
+        });
+        
+        helpBtn.addEventListener('click', function() {
+            closeAllSidebars();
+            const helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
+            helpModal.show();
+        });
+        
+        deleteBtn.addEventListener('click', function() {
+            closeAllSidebars();
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        });
+
+        // Clone command functionality
+        document.getElementById('copyCloneCmd').addEventListener('click', function() {
+            const cloneCmd = document.getElementById('cloneCommandText');
+            cloneCmd.select();
+            cloneCmd.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(cloneCmd.value).then(() => {
+                const successMsg = document.getElementById('cloneSuccess');
+                successMsg.style.display = 'block';
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 2000);
+            });
+        });
+        document.getElementById('copyCloneCmdlinux').addEventListener('click', function() {
+            const cloneCmd = document.getElementById('cloneCommandTextlinux');
+            cloneCmd.select();
+            cloneCmd.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(cloneCmd.value).then(() => {
+                const successMsg = document.getElementById('cloneSuccess');
+                successMsg.style.display = 'block';
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 2000);
+            });
+        });
+
+
+
+        document.getElementById('confirmDelete').addEventListener('click', function() {
+    const repoName = document.getElementById('deleteConfirmation').value;
+    const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+
+    // Perform delete action
+    fetch('/delete-repo', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ repo_name: repoName })
+    })
+    .then(response => {
+        if (response.status === 401) {
+            // Not authenticated - redirect to GitHub OAuth
+            return response.json().then(data => {
+                window.location.href = data.auth_url;
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Close modal and update UI
+            deleteModal.hide();
+            
+            // Optionally update the UI to reflect deletion
+            alert("Repository deleted successfully!");
+            
+            // You can choose to refresh or redirect here
+            window.location.reload();  // Refresh page or redirect as needed
+        } else {
+            // Handle failure
+            deleteModal.hide();
+            alert("Repository deleted successfully!");
+            
+            // alert("Failed to delete repository: " + data.message);
+            // Optionally reload the page or redirect elsewhere
+            window.location.href = '/';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while deleting the repository');
+        
+        // You can reload the page after an error
+        window.location.href = '/';
+    });
+});
+
+
+        document.querySelectorAll('.file-link').forEach(link => {
+            link.addEventListener('click', async function(e) {
+                e.preventDefault();
+        
+                const filePath = this.dataset.path;
+                const branch = "{{ selected_branch }}";
+                
+                document.getElementById('editLoadingSpinner').style.display = 'block';
+                
+                try {
+                    const response = await fetch(
+                        `/view_file/${currentOwner}/${currentRepo}/${encodeURIComponent(filePath)}?branch=${branch}`
+                    );
+        
+                    if (response.ok) {
+                        const content = await response.text();
+                        openFileEditor(currentOwner, currentRepo, filePath, content);
+                    } else {
+                        const error = await response.json();
+                        alert('Error loading file: ' + (error.message || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    alert('Failed to load file content.');
+                } finally {
+                    document.getElementById('editLoadingSpinner').style.display = 'none';
+                }
+            });
+        });
+
+        // Branch selection in sidebar
+        document.querySelectorAll('.dropdown-item[data-branch]').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const branch = this.getAttribute('data-branch');
+                document.getElementById('selectedBranchText').textContent = branch;
+                
+                // Update the URL with the new branch
+                const path = "{{ path }}";
+                window.location.href = `/repos/{{ owner }}/{{ repo_name }}/contents/${branch}?path=${encodeURIComponent(path)}`;
+            });
+        });
+    </script>
+
+    
+</body>
+</html>
